@@ -4,6 +4,6 @@ namespace Application.Common.Interfaces
 {
     public interface IKeywordHasher
     {
-        public HashedKeyword HashKeyword(Keyword keyword);
+        public Keyword HashKeyword(Keyword keyword);
     }
 }
