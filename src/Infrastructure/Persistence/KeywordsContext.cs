@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence
@@ -13,14 +14,7 @@ namespace Infrastructure.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var builder = modelBuilder.Entity<Keyword>();
-
-            builder.ToTable("seo_query", "legent");
-
-            builder.HasKey(k => new {k.SearchString, k.CountryCode});
-
-            builder.Property(keyword => keyword.CountryCode).HasColumnName("country");
-            builder.Property(keyword => keyword.SearchString).HasColumnName("ss");
+            modelBuilder.ApplyConfiguration(new KeywordConfiguration());
         }
     }
 }
