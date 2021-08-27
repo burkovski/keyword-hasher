@@ -1,6 +1,6 @@
 using Jooble.Text.Enumerations;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.KeywordHasher
 {
     internal static class TransformFlagsExtensions
     {
