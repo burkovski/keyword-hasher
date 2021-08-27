@@ -1,6 +1,6 @@
 ﻿using Application.Common.Interfaces;
 using Infrastructure.Persistence;
-using Infrastructure.Services;
+using Infrastructure.Services.KeywordHasher;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,13 +13,11 @@ namespace Infrastructure
             IConfiguration configuration)
         {
             services.AddDbContext<KeywordsContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("Keywords")));
+                    options.UseSqlServer(configuration.GetConnectionString("Keywords"))
+                        .EnableDetailedErrors(),
+                ServiceLifetime.Transient);
 
-            services.AddDbContext<HashedKeywordsContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("HashedKeywords")));
-
-            services.AddScoped<IKeywordsContext>(provider => provider.GetService<KeywordsContext>());
-            services.AddScoped<IHashedKeywordsContext>(provider => provider.GetService<HashedKeywordsContext>());
+            services.AddTransient<IKeywordsContext>(provider => provider.GetService<KeywordsContext>());
 
             services.AddTransient<IKeywordHasher, KeywordHasherService>();
 
