@@ -15,19 +15,23 @@ namespace KeywordHasherJob
     {
         private static async Task Main(string[] args)
         {
-            await Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<KeywordsHashingService>();
+            var host =  Host.CreateDefaultBuilder(args)
+                .ConfigureServices(OnConfigureServices)
+                .Build();
 
-                    services.AddApplication();
-                    services.AddInfrastructure(hostContext.Configuration);
+            var keywordsHashingJob = host.Services.GetRequiredService<KeywordsHashingJob>();
+            var applicationLifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+            await keywordsHashingJob.GenerateAndStoreHashesForKeywordsAsync(applicationLifetime.ApplicationStopped);
+        }
 
-                    services.AddTransient<KeywordsHashingJob>();
-                    services.AddOptions<KeywordsHashingJobSettings>()
-                        .Bind(hostContext.Configuration.GetSection("KeywordsHashingJob"));
-                })
-                .RunConsoleAsync();
+        private static void OnConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
+        {
+            services.AddApplication();
+            services.AddInfrastructure(hostContext.Configuration);
+
+            services.AddOptions<KeywordsHashingJobSettings>()
+                .BindConfiguration("KeywordsHashingJob");
+            services.AddTransient<KeywordsHashingJob>();
         }
     }
 }

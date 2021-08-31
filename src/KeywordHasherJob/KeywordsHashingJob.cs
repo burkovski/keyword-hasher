@@ -8,6 +8,7 @@ using Application.Keywords.Queries.GetKeywords;
 using Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace KeywordHasherJob
 {
@@ -15,25 +16,27 @@ namespace KeywordHasherJob
     {
         private readonly ILogger<KeywordsHashingJob> _logger;
         private readonly ISender _mediatr;
+        private readonly KeywordsHashingJobSettings _keywordsHashingJobSettings;
 
-        public KeywordsHashingJob(ILogger<KeywordsHashingJob> logger, ISender mediatr)
+        public KeywordsHashingJob(ILogger<KeywordsHashingJob> logger, ISender mediatr,
+            IOptions<KeywordsHashingJobSettings> keywordsHashingJobSettings)
         {
             _logger = logger;
             _mediatr = mediatr;
+            _keywordsHashingJobSettings = keywordsHashingJobSettings.Value;
         }
 
-        public async Task GenerateAndStoreHashesForKeywordsAsync(List<string> countriesToHash, int batchSize,
-            CancellationToken cancellationToken)
+        public async Task GenerateAndStoreHashesForKeywordsAsync(CancellationToken cancellationToken)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+
+            var (countriesToHash, batchSize) = _keywordsHashingJobSettings;
 
             var (totalCount, keywords) = await GetAllKeywordsAsync(countriesToHash, cancellationToken);
             var keywordsBatches = keywords.Buffer(batchSize).WithCancellation(cancellationToken);
 
             var updatedCount = 0;
-
-            var keywordsBatches = keywords.AsBatchedAsyncEnumerable(batchSize).WithCancellation(cancellationToken);
             await foreach (var keywordsBatch in keywordsBatches)
                 updatedCount += await UpdateHashesForKeywordsBatchAsync(keywordsBatch, cancellationToken);
 
