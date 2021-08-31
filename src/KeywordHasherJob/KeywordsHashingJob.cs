@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.Common.Extensions;
 using Application.Keywords.Commands.UpdateKeywordsHashFromRange;
 using Application.Keywords.Queries.GetKeywords;
 using Domain.Entities;
@@ -29,6 +29,8 @@ namespace KeywordHasherJob
             stopwatch.Start();
 
             var (totalCount, keywords) = await GetAllKeywordsAsync(countriesToHash, cancellationToken);
+            var keywordsBatches = keywords.Buffer(batchSize).WithCancellation(cancellationToken);
+
             var updatedCount = 0;
 
             var keywordsBatches = keywords.AsBatchedAsyncEnumerable(batchSize).WithCancellation(cancellationToken);
